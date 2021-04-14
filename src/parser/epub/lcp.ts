@@ -5,17 +5,15 @@
 // that can be found in the LICENSE file exposed on Github (readium) in the project repository.
 // ==LICENSE-END==
 
-import * as bind from "bindings";
 import * as crypto from "crypto";
 import * as debug_ from "debug";
-import * as fs from "fs";
-import * as path from "path";
-import * as request from "request";
-import * as requestPromise from "request-promise-native";
+
+import { http } from "follow-redirects";
+import { IncomingMessage } from "http";
 // https://github.com/edcarroll/ta-json
 import { JsonElementType, JsonObject, JsonProperty } from "ta-json-x";
 
-import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
+import { streamToBufferPromise } from "@r2-utils-rn/_utils/stream/BufferUtils";
 
 import { CRL_URL, DUMMY_CRL } from "./lcp-certificate";
 import { Encryption } from "./lcp-encryption";
@@ -31,18 +29,9 @@ const debug = debug_("r2:lcp#parser/epub/lcp");
 
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev");
 
-let LCP_NATIVE_PLUGIN_PATH = path.join(process.cwd(), "LCP", "lcp.node");
-export function setLcpNativePluginPath(filepath: string): boolean {
-    LCP_NATIVE_PLUGIN_PATH = filepath;
-    if (IS_DEV) {
-        debug(LCP_NATIVE_PLUGIN_PATH);
-    }
-
-    const exists = fs.existsSync(LCP_NATIVE_PLUGIN_PATH);
-    if (IS_DEV) {
-        debug("LCP NATIVE PLUGIN: " + (exists ? "OKAY" : "MISSING"));
-    }
-    return exists;
+export function setLcpNativePluginPath(_: string): boolean {
+    // The node LCP native plugin is not supported
+    return false;
 }
 
 export interface IDecryptedBuffer {
@@ -132,32 +121,11 @@ export class LCP {
         this.ContentKey = undefined;
         this._lcpContext = undefined;
 
-        if (fs.existsSync(LCP_NATIVE_PLUGIN_PATH)) {
-            if (IS_DEV) {
-                debug("LCP _usesNativeNodePlugin");
-            }
-            const filePath = path.dirname(LCP_NATIVE_PLUGIN_PATH);
-            const fileName = path.basename(LCP_NATIVE_PLUGIN_PATH);
-            if (IS_DEV) {
-                debug(filePath);
-                debug(fileName);
-            }
-            this._usesNativeNodePlugin = true;
-            this._lcpNative = bind({
-                bindings: fileName,
-                module_root: filePath,
-                try: [[
-                    "module_root",
-                    "bindings",
-                ]],
-            });
-        } else {
-            if (IS_DEV) {
-                debug("LCP JS impl");
-            }
-            this._usesNativeNodePlugin = false;
-            this._lcpNative = undefined;
+        if (IS_DEV) {
+            debug("LCP JS impl");
         }
+        this._usesNativeNodePlugin = false;
+        this._lcpNative = undefined;
     }
 
     public async decrypt(encryptedContent: Buffer, linkHref: string, needsInflating: boolean):
@@ -456,7 +424,7 @@ export class LCP {
                 resolve(DUMMY_CRL);
             };
 
-            const success = async (response: request.RequestResponse) => {
+            const success = async (response: IncomingMessage) => {
 
                 if (IS_DEV) {
                     Object.keys(response.headers).forEach((header: string) => {
@@ -523,34 +491,12 @@ export class LCP {
                 // "Accept-Language": "en-UK,en-US;q=0.7,en;q=0.5",
             };
 
-            // No response streaming! :(
-            // https://github.com/request/request-promise/issues/90
-            const needsStreamingResponse = true;
-            if (needsStreamingResponse) {
-                request.get({
-                    headers,
-                    method: "GET",
-                    uri: crlURL,
-                })
-                    .on("response", success)
-                    .on("error", failure);
-            } else {
-                let response: requestPromise.FullResponse;
-                try {
-                    // tslint:disable-next-line:await-promise no-floating-promises
-                    response = await requestPromise({
-                        headers,
-                        method: "GET",
-                        resolveWithFullResponse: true,
-                        uri: crlURL,
-                    });
-                } catch (err) {
-                    failure(err);
-                    return;
-                }
-
-                await success(response);
-            }
+            http.get({
+                ...new URL(crlURL),
+                headers,
+            })
+                .on("response", success)
+                .on("error", failure);
         });
     }
 

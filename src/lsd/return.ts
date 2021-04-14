@@ -6,10 +6,10 @@
 // ==LICENSE-END==
 
 import * as debug_ from "debug";
-import * as request from "request";
-import * as requestPromise from "request-promise-native";
+import { http } from "follow-redirects";
+import { IncomingMessage } from "http";
 
-import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
+import { streamToBufferPromise } from "@r2-utils-rn/_utils/stream/BufferUtils";
 
 import { LSD } from "../parser/epub/lsd";
 import { TaJsonDeserialize, TaJsonSerialize } from "../serializable";
@@ -97,7 +97,7 @@ export async function lsdReturn_(
             reject(err);
         };
 
-        const success = async (response: request.RequestResponse) => {
+        const success = async (response: IncomingMessage) => {
 
             if (IS_DEV) {
                 Object.keys(response.headers).forEach((header: string) => {
@@ -177,33 +177,13 @@ export async function lsdReturn_(
             "User-Agent": "Readium2-LCP",
         }, httpHeaders ? httpHeaders : {});
 
-        // No response streaming! :(
-        // https://github.com/request/request-promise/issues/90
-        const needsStreamingResponse = true;
-        if (needsStreamingResponse) {
-            request.put({
-                headers,
-                method: "PUT",
-                uri: returnURL,
-            })
-                .on("response", success)
-                .on("error", failure);
-        } else {
-            let response: requestPromise.FullResponse;
-            try {
-                // tslint:disable-next-line:await-promise no-floating-promises
-                response = await requestPromise({
-                    headers,
-                    method: "PUT",
-                    resolveWithFullResponse: true,
-                    uri: returnURL,
-                });
-            } catch (err) {
-                failure(err);
-                return;
-            }
-
-            await success(response);
-        }
+        http.request({
+            ...new URL(returnURL),
+            headers,
+            method: "PUT",
+        })
+            .on("response", success)
+            .on("error", failure)
+            .end();
     });
 }

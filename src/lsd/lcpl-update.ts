@@ -7,10 +7,11 @@
 
 import * as debug_ from "debug";
 import * as moment from "moment";
-import * as request from "request";
-import * as requestPromise from "request-promise-native";
 
-import { streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
+import { http } from "follow-redirects";
+import { IncomingMessage } from "http";
+
+import { streamToBufferPromise } from "@r2-utils-rn/_utils/stream/BufferUtils";
 
 import { LCP } from "../parser/epub/lcp";
 
@@ -62,7 +63,7 @@ export async function lsdLcpUpdate(
                         reject(err);
                     };
 
-                    const success = async (response: request.RequestResponse) => {
+                    const success = async (response: IncomingMessage) => {
 
                         if (IS_DEV) {
                             Object.keys(response.headers).forEach((header: string) => {
@@ -169,34 +170,12 @@ export async function lsdLcpUpdate(
                         "User-Agent": "Readium2-LCP",
                     }, httpHeaders ? httpHeaders : {});
 
-                    // No response streaming! :(
-                    // https://github.com/request/request-promise/issues/90
-                    const needsStreamingResponse = true;
-                    if (needsStreamingResponse) {
-                        request.get({
-                            headers,
-                            method: "GET",
-                            uri: licenseLink.Href,
-                        })
-                            .on("response", success)
-                            .on("error", failure);
-                    } else {
-                        let response: requestPromise.FullResponse;
-                        try {
-                            // tslint:disable-next-line:await-promise no-floating-promises
-                            response = await requestPromise({
-                                headers,
-                                method: "GET",
-                                resolveWithFullResponse: true,
-                                uri: licenseLink.Href,
-                            });
-                        } catch (err) {
-                            failure(err);
-                            return;
-                        }
-
-                        await success(response);
-                    }
+                    http.get({
+                        ...new URL(licenseLink.Href),
+                        headers,
+                    })
+                        .on("response", success)
+                        .on("error", failure);
                 });
             }
         }

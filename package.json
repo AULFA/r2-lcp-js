@@ -1,5 +1,5 @@
 {
-  "name": "r2-lcp-js",
+  "name": "r2-lcp-rn",
   "version": "1.0.29",
   "description": "Readium 2 LCP bits for NodeJS (TypeScript)",
   "keywords": [
@@ -27,7 +27,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/readium/r2-lcp-js.git"
+    "url": "git+https://github.com/AULFA/r2-lcp-rn.git"
   },
   "author": {
     "name": "Readium Foundation",
@@ -42,25 +42,23 @@
     }
   ],
   "bugs": {
-    "url": "https://github.com/readium/r2-lcp-js/issues"
+    "url": "https://github.com/AULFA/r2-lcp-rn/issues"
   },
-  "homepage": "https://github.com/readium/r2-lcp-js",
+  "homepage": "https://github.com/AULFA/r2-lcp-rn",
   "dependencies": {
     "bindings": "^1.5.0",
     "debug": "^4.1.1",
+    "follow-redirects": "^1.13.3",
     "moment": "^2.27.0",
-    "r2-utils-js": "^1.0.23",
-    "request": "^2.88.2",
-    "request-promise-native": "^1.0.8",
+    "r2-utils-rn": "file:../r2-utils-rn",
     "ta-json-x": "^2.5.2",
     "tslib": "^2.0.0",
     "urijs": "^1.19.2"
   },
   "devDependencies": {
     "@types/debug": "^4.1.5",
+    "@types/follow-redirects": "^1.13.0",
     "@types/node": "^12.12.47",
-    "@types/request": "^2.48.5",
-    "@types/request-promise-native": "^1.0.17",
     "@types/urijs": "^1.19.9",
     "cpy-cli": "^3.1.1",
     "cross-env": "^7.0.2",
@@ -84,10 +82,10 @@
   ],
   "scripts": {
     "cson2json": "sed -E \"s/#ECMASCRIPT#/es5/g\" package-scripts-build.cson > tmp-build.cson && sed -E \"s/#ECMASCRIPT#/es6-es2015/g\" package-scripts-build.cson >> tmp-build.cson && sed -E \"s/#ECMASCRIPT#/es7-es2016/g\" package-scripts-build.cson >> tmp-build.cson && sed -E \"s/#ECMASCRIPT#/es8-es2017/g\" package-scripts-build.cson >> tmp-build.cson && json -I -f package.json -e \"this.scripts=$(cat package-scripts.cson tmp-build.cson | node node_modules/.bin/cson2json)\" && rimraf tmp-*.cson",
-    "copydist": "cpy \"./dist/**/*\" ../r2-shared-js/node_modules/r2-lcp-js/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../r2-streamer-js/node_modules/r2-lcp-js/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../r2-navigator-js/node_modules/r2-lcp-js/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../r2-testapp-js/node_modules/r2-lcp-js/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../readium-desktop/node_modules/r2-lcp-js/ --cwd=./ --parents --no-dir",
+    "copydist": "cpy \"./dist/**/*\" ../r2-shared-js/node_modules/r2-lcp-rn/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../r2-streamer-js/node_modules/r2-lcp-rn/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../r2-navigator-js/node_modules/r2-lcp-rn/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../r2-testapp-js/node_modules/r2-lcp-rn/ --cwd=./ --parents --no-dir && cpy \"./dist/**/*\" ../readium-desktop/node_modules/r2-lcp-rn/ --cwd=./ --parents --no-dir",
     "quick-build-dist": "npm run transpile:typescript:es8-es2017+afterdist && npm run copydist",
     "_pregitdist": "npm run build:all",
-    "gitdist": "cd ../r2-lcp-js-dist/ && git checkout -B develop && (git pull || echo \"pull\") && (git --no-pager status || echo status) && ((rimraf \"*\" && echo rimrafOK) || echo rimrafNOK) && cpy ../r2-lcp-js/package.json . && cpy ../r2-lcp-js/package-lock.json . && cpy ../r2-lcp-js/LICENSE . && cpy ../r2-lcp-js/README.md . && cpy \"./docs/**/*\" ../r2-lcp-js-dist/ --cwd=../r2-lcp-js/ --parents --no-dir && cpy \"./dist/**/*\" ../r2-lcp-js-dist/ --cwd=../r2-lcp-js/ --parents --no-dir && (git add * || echo add) && (git commit -a -m \"add new dist\" || echo commit) && (git push --set-upstream origin develop || echo push) && (git --no-pager status || echo status) && cd ../r2-lcp-js",
+    "gitdist": "cd ../r2-lcp-rn-dist/ && git checkout -B develop && (git pull || echo \"pull\") && (git --no-pager status || echo status) && ((rimraf \"*\" && echo rimrafOK) || echo rimrafNOK) && cpy ../r2-lcp-rn/package.json . && cpy ../r2-lcp-rn/package-lock.json . && cpy ../r2-lcp-rn/LICENSE . && cpy ../r2-lcp-rn/README.md . && cpy \"./docs/**/*\" ../r2-lcp-rn-dist/ --cwd=../r2-lcp-rn/ --parents --no-dir && cpy \"./dist/**/*\" ../r2-lcp-rn-dist/ --cwd=../r2-lcp-rn/ --parents --no-dir && (git add * || echo add) && (git commit -a -m \"add new dist\" || echo commit) && (git push --set-upstream origin develop || echo push) && (git --no-pager status || echo status) && cd ../r2-lcp-rn",
     "prepare_": "npm run build:all && npm test",
     "prepublish_": "npm run prepare_",
     "typescript:imports": "node tools/typescript_relativize_path_mapping_imports.js",
