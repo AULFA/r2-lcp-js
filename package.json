@@ -50,7 +50,7 @@
     "debug": "^4.1.1",
     "follow-redirects": "^1.13.3",
     "moment": "^2.27.0",
-    "r2-utils-rn": "file:../r2-utils-rn",
+    "r2-utils-rn": "AULFA/r2-utils-rn-dist#develop",
     "ta-json-x": "^2.5.2",
     "tslib": "^2.0.0",
     "urijs": "^1.19.2"
