@@ -11,12 +11,12 @@ import * as zlib from "zlib";
 
 import { Encrypted } from "@models/metadata-encrypted";
 import { IDecryptedBuffer, LCP } from "@parser/epub/lcp";
-import { bufferToStream, streamToBufferPromise } from "@r2-utils-js/_utils/stream/BufferUtils";
-import { RangeStream } from "@r2-utils-js/_utils/stream/RangeStream";
-import { IStreamAndLength } from "@r2-utils-js/_utils/zip/zip";
+import { bufferToStream, streamToBufferPromise } from "@r2-utils-rn/_utils/stream/BufferUtils";
+import { RangeStream } from "@r2-utils-rn/_utils/stream/RangeStream";
+import { IStreamAndLength } from "@r2-utils-rn/_utils/zip/zip";
 
 // import * as forge from "node-forge";
-// import { CounterPassThroughStream } from "@r2-utils-js/_utils/stream/CounterPassThroughStream";
+// import { CounterPassThroughStream } from "@r2-utils-rn/_utils/stream/CounterPassThroughStream";
 // import { Transform } from "stream";
 
 const debug = debug_("r2:lcp#transform/transformer-lcp");
